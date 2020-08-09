@@ -1,28 +1,56 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Chat />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Chat from './components/Chat.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
-}
+    Chat,
+  },
+};
 </script>
 
 <style>
+/* Variables */
+:root {
+  --header-bg: linear-gradient(
+    90deg,
+    rgba(219, 255, 80, 1) 0%,
+    rgba(44, 236, 173, 1) 100%
+  );
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
