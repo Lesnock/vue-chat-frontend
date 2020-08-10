@@ -16,17 +16,16 @@
             hour="10:00"
             :isMine="true"
           />
-
         </div>
         <div class="typing">
+          <input type="text" v-model="text" @keydown.enter="sendMessage" />
 
-          <input
-            type="text"
-            v-model="text"
-            @keydown.enter="sendMessage"
+          <img
+            class="send-icon"
+            src="../assets/icons/send-icon.svg"
+            alt="Send"
+            @click="sendMessage"
           />
-
-          <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage"/>
         </div>
       </div>
     </div>
@@ -37,6 +36,7 @@
 import ContactsList from './ContactsList.vue';
 import Message from './Message.vue';
 import socket from '../services/socket';
+import store from '../services/store';
 
 export default {
   name: 'Chat',
@@ -49,43 +49,45 @@ export default {
     return {
       text: '',
       messagesDivEl: null,
-      messages: []
+      messages: [],
     };
   },
   methods: {
     clearInput() {
-      this.text = ''
+      this.text = '';
     },
     scrollToBottom() {
       this.messagesDivEl.scrollTo(0, this.messagesDivEl.scrollHeight);
     },
     async sendMessage() {
       if (!this.text.length) {
-        return
+        return;
       }
 
       const message = {
         text: this.text,
         date: new Date(),
-      }
+      };
 
       socket.emit('send-message', {
         username: 'caio',
-        message
-      })
+        message,
+      });
 
-      await this.messages.push(message)
+      await this.messages.push(message);
 
-      this.clearInput()
+      this.clearInput();
 
-      this.scrollToBottom()
-    }
+      this.scrollToBottom();
+    },
   },
   mounted() {
     // Define elements
-    this.messagesDivEl = document.getElementsByClassName('messages')[0]
+    this.messagesDivEl = document.getElementsByClassName('messages')[0];
 
-    this.scrollToBottom()
+    this.scrollToBottom();
+
+    console.log(store.get('user'));
   },
 };
 </script>

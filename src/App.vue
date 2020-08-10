@@ -5,12 +5,16 @@
 </template>
 
 <script>
+import store from './services/store';
 import Chat from './components/Chat.vue';
 
 export default {
   name: 'App',
   components: {
     Chat,
+  },
+  mounted() {
+    store.add('user', 'caio');
   },
 };
 </script>
