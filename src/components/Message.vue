@@ -28,11 +28,11 @@ export default {
   font-size: 14px;
   position: relative;
 
-  align-self: flex-end;
+  align-self: flex-start;
 }
 
 .message.mine {
-  align-self: flex-start;
+  align-self: flex-end;
 }
 
 .text {

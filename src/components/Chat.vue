@@ -9,30 +9,24 @@
       <ContactsList />
       <div class="main">
         <div class="messages">
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
-          <Message text="Check your email" hour="12:02" :isMine="true" />
-          <Message text="Okay. I'll try." hour="14:25" :isMine="false" />
+          <Message
+            v-for="message of messages"
+            :key="message.text"
+            :text="message.text"
+            hour="10:00"
+            :isMine="true"
+          />
+
         </div>
         <div class="typing">
-          <input type="text" />
-          <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" />
+
+          <input
+            type="text"
+            v-model="text"
+            @keydown.enter="sendMessage"
+          />
+
+          <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage"/>
         </div>
       </div>
     </div>
@@ -42,6 +36,7 @@
 <script>
 import ContactsList from './ContactsList.vue';
 import Message from './Message.vue';
+import socket from '../services/socket';
 
 export default {
   name: 'Chat',
@@ -51,11 +46,46 @@ export default {
     Message,
   },
   data() {
-    return {};
+    return {
+      text: '',
+      messagesDivEl: null,
+      messages: []
+    };
+  },
+  methods: {
+    clearInput() {
+      this.text = ''
+    },
+    scrollToBottom() {
+      this.messagesDivEl.scrollTo(0, this.messagesDivEl.scrollHeight);
+    },
+    async sendMessage() {
+      if (!this.text.length) {
+        return
+      }
+
+      const message = {
+        text: this.text,
+        date: new Date(),
+      }
+
+      socket.emit('send-message', {
+        username: 'caio',
+        message
+      })
+
+      await this.messages.push(message)
+
+      this.clearInput()
+
+      this.scrollToBottom()
+    }
   },
   mounted() {
-    const messagesDiv = document.getElementsByClassName('messages')[0];
-    messagesDiv.scrollTo(0, messagesDiv.scrollHeight);
+    // Define elements
+    this.messagesDivEl = document.getElementsByClassName('messages')[0]
+
+    this.scrollToBottom()
   },
 };
 </script>
