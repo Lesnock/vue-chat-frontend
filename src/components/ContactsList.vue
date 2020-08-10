@@ -1,18 +1,56 @@
 <template>
   <div class="container">
-    <ul class="list">
-      <li>
-        <img src="../assets/avatar.jpg" alt="Contact" />
-        <span>Gabriela Lesnock</span>
-      </li>
-
-      <li>
-        <img src="../assets/avatar.jpg" alt="Contact" />
-        <span>John Doe</span>
+    <ul class="list" v-if="contacts.length > 0">
+      <li
+        v-for="contact in contacts"
+        :key="contact.id"
+        :class="[currentContact && contact.id === currentContact.id ? 'selected' : '']"
+        @click="setCurrentContact(contact)"
+      >
+        <img :src="require('../assets/' + contact.avatar)" alt="Contact" />
+        <span>{{contact.name}}</span>
       </li>
     </ul>
   </div>
 </template>
+
+<script>
+import api from '../services/api';
+import store from '../services/store';
+
+export default {
+  name: 'ContactsList',
+  data() {
+    return {
+      contacts: [],
+      loggedUser: store.get('loggedUser'),
+      currentContact: store.get('currentContact'),
+    };
+  },
+
+  async created() {
+    const res = await api.get('/users');
+    this.contacts = res.data;
+    console.log(res.data);
+
+    this.contacts = this.contacts.filter((contact) => {
+      return contact.id !== this.loggedUser.id;
+    });
+
+    // Create listener
+    store.listen(
+      'currentContact',
+      (contact) => (this.currentContact = contact)
+    );
+  },
+
+  methods: {
+    setCurrentContact(contact) {
+      store.update('currentContact', contact);
+    },
+  },
+};
+</script>
 
 <style scoped>
 .container {
@@ -35,6 +73,10 @@
   align-items: center;
 }
 
+.list li.selected {
+  background: #ccc;
+}
+
 .list > li + li {
   border-top: 1px solid #ccc;
 }
@@ -45,6 +87,7 @@
 }
 
 .list img {
+  object-fit: cover;
   width: 50px;
   height: 50px;
   border-radius: 50%;

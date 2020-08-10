@@ -1,12 +1,13 @@
 <template>
   <div class="container">
     <header class="top">
-      <span class="user-name">Caio Lesnock</span>
+      <span class="user-name">{{ loggedUser.name }}</span>
       <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
     </header>
 
     <div class="bottom">
       <ContactsList />
+
       <div class="main">
         <div class="messages">
           <Message
@@ -17,7 +18,7 @@
             :isMine="true"
           />
         </div>
-        <div class="typing">
+        <div class="typing" v-if="currentContact">
           <input type="text" v-model="text" @keydown.enter="sendMessage" />
 
           <img
@@ -37,20 +38,46 @@ import ContactsList from './ContactsList.vue';
 import Message from './Message.vue';
 import socket from '../services/socket';
 import store from '../services/store';
+import api from '../services/api';
 
 export default {
   name: 'Chat',
-  props: {},
   components: {
     ContactsList,
     Message,
   },
+
   data() {
     return {
       text: '',
+      loggedUser: store.get('loggedUser'),
       messagesDivEl: null,
       messages: [],
+      currentContact: null,
     };
+  },
+
+  watch: {
+    currentContact: async function (contact) {
+      const messages = await api.get(
+        `/messages/${this.loggedUser.id}/${contact.id}`
+      );
+
+      this.messages = messages.data;
+    },
+  },
+
+  created() {
+    store.listen(
+      'currentContact',
+      (contact) => (this.currentContact = contact)
+    );
+  },
+
+  async mounted() {
+    // Define elements
+    this.messagesDivEl = document.getElementsByClassName('messages')[0];
+    this.scrollToBottom();
   },
   methods: {
     clearInput() {
@@ -60,19 +87,19 @@ export default {
       this.messagesDivEl.scrollTo(0, this.messagesDivEl.scrollHeight);
     },
     async sendMessage() {
-      if (!this.text.length) {
+      if (!this.text.length || !this.currentContact) {
         return;
       }
 
       const message = {
+        sender_id: this.loggedUser.id,
+        recipient_id: this.currentContact.id,
         text: this.text,
         date: new Date(),
       };
 
-      socket.emit('send-message', {
-        username: 'caio',
-        message,
-      });
+      // Send message
+      socket.emit('send-message', message);
 
       await this.messages.push(message);
 
@@ -80,14 +107,9 @@ export default {
 
       this.scrollToBottom();
     },
-  },
-  mounted() {
-    // Define elements
-    this.messagesDivEl = document.getElementsByClassName('messages')[0];
-
-    this.scrollToBottom();
-
-    console.log(store.get('user'));
+    setRecipient(recipient) {
+      this.recipient = recipient;
+    },
   },
 };
 </script>

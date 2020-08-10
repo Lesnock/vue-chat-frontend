@@ -6,6 +6,8 @@
 
 <script>
 import store from './services/store';
+// import socket from './services/socket';
+import api from './services/api';
 import Chat from './components/Chat.vue';
 
 export default {
@@ -13,8 +15,16 @@ export default {
   components: {
     Chat,
   },
-  mounted() {
-    store.add('user', 'caio');
+  data() {
+    return {
+      loggedUser: store.get('loggedUser'),
+    };
+  },
+
+  methods: {
+    getUser(username) {
+      return api.get(`/users/${username}`);
+    },
   },
 };
 </script>
