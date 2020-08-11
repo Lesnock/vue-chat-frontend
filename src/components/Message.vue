@@ -1,9 +1,11 @@
 <template>
+  <!-- <div class="wrapper"> -->
   <div class="message" :class="[isMine ? 'mine' : '']">
     <div class="text">{{ text }}</div>
     <div class="hour">{{ hour }}</div>
     <div class="viewd"></div>
   </div>
+  <!-- </div> -->
 </template>
 
 <script>
@@ -19,6 +21,13 @@ export default {
 </script>
 
 <style scoped>
+.wrapper {
+  display: flex;
+  justify-content: flex-end;
+
+  width: 100%;
+}
+
 .message {
   max-width: 50%;
   padding: 20px;

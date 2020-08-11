@@ -14,8 +14,8 @@
             v-for="message of messages"
             :key="message.text"
             :text="message.text"
-            :hour="`${message.date.getHours()}:${message.date.getMinutes()}`"
-            :isMine="true"
+            :hour="message.hour"
+            :isMine="message.isMine"
           />
         </div>
         <div class="typing" v-if="currentContact">
@@ -39,6 +39,7 @@ import Message from './Message.vue';
 import socket from '../services/socket';
 import store from '../services/store';
 import api from '../services/api';
+import { format, zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 export default {
   name: 'Chat',
@@ -64,10 +65,32 @@ export default {
         `/messages/${this.loggedUser.id}/${contact.id}`
       );
 
-      this.messages = messages.data.map((message) => ({
-        ...message,
-        date: new Date(message.date),
-      }));
+      let lastMessageDay = null; //eslint-disable-line
+
+      // Set date object and add isNewDay prop
+      this.messages = messages.data.map((message) => {
+        // Change to zoned time
+        const date = utcToZonedTime(message.date, 'America/Sao_Paulo');
+
+        // Verify if message its in a new day
+        const currentDay = date.getDay() + '/' + date.getMonth();
+        const isNewDay = currentDay !== lastMessageDay;
+        lastMessageDay = currentDay;
+
+        // Verify if message is mine
+        const isMine = message.sender_id === this.loggedUser.id;
+
+        // Add Hour format
+        const hour = format(date, 'HH:mm');
+
+        return {
+          ...message,
+          isNewDay,
+          hour,
+          date,
+          isMine,
+        };
+      });
     },
   },
 
@@ -95,16 +118,21 @@ export default {
         return;
       }
 
+      // Change to UTC
+      const date = zonedTimeToUtc(new Date(), 'America/Sao_Paulo');
+
       const message = {
         sender_id: this.loggedUser.id,
         recipient_id: this.currentContact.id,
         text: this.text,
-        date: new Date(),
+        date,
+        isMine: true,
       };
 
       // Send message
       socket.emit('send-message', message);
 
+      message.hour = format(date, 'HH:mm');
       await this.messages.push(message);
 
       this.clearInput();
