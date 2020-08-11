@@ -14,7 +14,7 @@
             v-for="message of messages"
             :key="message.text"
             :text="message.text"
-            hour="10:00"
+            :hour="`${message.date.getHours()}:${message.date.getMinutes()}`"
             :isMine="true"
           />
         </div>
@@ -50,6 +50,7 @@ export default {
   data() {
     return {
       text: '',
+      offset: 0,
       loggedUser: store.get('loggedUser'),
       messagesDivEl: null,
       messages: [],
@@ -63,7 +64,10 @@ export default {
         `/messages/${this.loggedUser.id}/${contact.id}`
       );
 
-      this.messages = messages.data;
+      this.messages = messages.data.map((message) => ({
+        ...message,
+        date: new Date(message.date),
+      }));
     },
   },
 
@@ -164,6 +168,7 @@ export default {
   height: 0px; /* Hack for use flexbox and overflow */
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   padding: 0px 2% 20px;
   overflow-y: scroll;
 }
