@@ -1,21 +1,36 @@
 <template>
-  <!-- <div class="wrapper"> -->
-  <div class="message" :class="[isMine ? 'mine' : '']">
-    <div class="text">{{ text }}</div>
-    <div class="hour">{{ hour }}</div>
-    <div class="viewd"></div>
+  <div class="wrapper">
+    <span v-if="isNewDay" class="day">{{ dayAndMonth }}</span>
+
+    <div class="message" :class="[isMine ? 'mine' : '']">
+      <div class="text">{{ text }}</div>
+      <div class="hour">{{ hour }}</div>
+      <div class="viewd"></div>
+    </div>
   </div>
-  <!-- </div> -->
 </template>
 
 <script>
+import { format } from 'date-fns';
+
 export default {
   name: 'Message',
   props: {
     text: String,
-    isMine: Boolean,
     date: Date,
     hour: String,
+    isMine: Boolean,
+    isNewDay: Boolean,
+  },
+
+  data() {
+    return {
+      dayAndMonth: null,
+    };
+  },
+
+  created() {
+    this.dayAndMonth = format(this.date, 'dd/MM/yyyy');
   },
 };
 </script>
@@ -23,9 +38,7 @@ export default {
 <style scoped>
 .wrapper {
   display: flex;
-  justify-content: flex-end;
-
-  width: 100%;
+  flex-direction: column;
 }
 
 .message {
@@ -36,12 +49,19 @@ export default {
   border-radius: 10px;
   font-size: 14px;
   position: relative;
-
   align-self: flex-start;
 }
 
 .message.mine {
   align-self: flex-end;
+}
+
+.day {
+  text-align: center;
+  background: #eee;
+  padding: 8px;
+  border-radius: 5px;
+  margin: 15px auto;
 }
 
 .text {

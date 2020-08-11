@@ -12,10 +12,12 @@
         <div class="messages">
           <Message
             v-for="message of messages"
-            :key="message.text"
+            :key="`${message.date.getTime()}`"
             :text="message.text"
+            :date="message.date"
             :hour="message.hour"
             :isMine="message.isMine"
+            :isNewDay="message.isNewDay"
           />
         </div>
         <div class="typing" v-if="currentContact">
@@ -53,7 +55,7 @@ export default {
       text: '',
       offset: 0,
       loggedUser: store.get('loggedUser'),
-      messagesDivEl: null,
+      messagesEl: null,
       messages: [],
       currentContact: null,
     };
@@ -101,17 +103,20 @@ export default {
     );
   },
 
-  async mounted() {
-    // Define elements
-    this.messagesDivEl = document.getElementsByClassName('messages')[0];
+  updated() {
     this.scrollToBottom();
+  },
+
+  mounted() {
+    // Define elements
+    this.messagesEl = document.getElementsByClassName('messages')[0];
   },
   methods: {
     clearInput() {
       this.text = '';
     },
     scrollToBottom() {
-      this.messagesDivEl.scrollTo(0, this.messagesDivEl.scrollHeight);
+      this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
     },
     async sendMessage() {
       if (!this.text.length || !this.currentContact) {
@@ -126,13 +131,13 @@ export default {
         recipient_id: this.currentContact.id,
         text: this.text,
         date,
-        isMine: true,
       };
 
       // Send message
       socket.emit('send-message', message);
 
       message.hour = format(date, 'HH:mm');
+      message.isMine = true;
       await this.messages.push(message);
 
       this.clearInput();
@@ -192,13 +197,13 @@ export default {
 }
 
 .messages {
-  flex-grow: 1;
-  height: 0px; /* Hack for use flexbox and overflow */
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  flex-grow: 1;
+  flex-shrink: 1;
   padding: 0px 2% 20px;
-  overflow-y: scroll;
+  overflow-y: auto;
+  height: 0px;
 }
 
 .typing {
