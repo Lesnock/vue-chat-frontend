@@ -36,8 +36,8 @@
 </template>
 
 <script>
-import ContactsList from './ContactsList.vue';
-import Message from './Message.vue';
+import ContactsList from '../components/ContactsList.vue';
+import Message from '../components/Message.vue';
 import socket from '../services/socket';
 import store from '../services/store';
 import api from '../services/api';
