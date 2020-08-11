@@ -1,16 +1,13 @@
 import Store from '@lesnock/simple-store'
 
-const store = new Store()
+const store = new Store({
+  persist: true
+})
 
-!store.has('loggedUser') &&
-  store.add('loggedUser', {
-    id: 1,
-    username: 'caio',
-    name: 'Caio Lesnock',
-    email: 'caio.dev@outlook.com',
-    password: '123',
-  });
+// Login
+!store.has('isLogged') && store.add('isLogged', false);
+!store.has('loggedUser') && store.add('loggedUser', null);
 
-store.add('currentContact', null);
+!store.has('currentContact') && store.add('currentContact', null);
 
 export default store

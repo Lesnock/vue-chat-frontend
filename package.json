@@ -24,7 +24,8 @@
     "electron-is-dev": "^1.2.0",
     "socket.io": "^2.3.0",
     "vue": "^2.6.11",
-    "vue-router": "^3.4.3"
+    "vue-router": "^3.4.3",
+    "vue-toastify": "^1.8.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",

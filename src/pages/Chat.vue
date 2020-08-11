@@ -96,11 +96,19 @@ export default {
     },
   },
 
+  beforeCreate() {
+    if (!store.get('isLogged')) {
+      this.$router.push('/');
+    }
+  },
+
   created() {
     store.listen(
       'currentContact',
       (contact) => (this.currentContact = contact)
     );
+
+    console.log(store.get('loggedUser'));
   },
 
   updated() {
