@@ -1,8 +1,8 @@
 <template>
   <div class="login-container">
     <h1>#Chat</h1>
-    <span class="error">{{ error }}</span>
     <form action="/" @submit="onSubmit">
+      <div class="error" v-show="error">{{ error }}</div>
       <input type="text" name="username" v-model="username" placeholder="Usuário" />
       <input type="password" name="password" v-model="password" placeholder="Senha" />
       <button type="submit">Login</button>
@@ -13,6 +13,7 @@
 <script>
 import api from '../services/api';
 import store from '../services/store';
+import socket from '../services/socket';
 
 export default {
   name: 'Login',
@@ -25,8 +26,8 @@ export default {
     };
   },
 
-  beforeCreate() {
-    if (store.get('isLogged')) {
+  async beforeCreate() {
+    if (store.get('token')) {
       this.$router.push('/chat');
     }
   },
@@ -36,21 +37,23 @@ export default {
       event.preventDefault();
 
       try {
-        const loggedUser = await api.post('/login', {
+        const response = await api.post('/login', {
           username: this.username,
           password: this.password,
         });
 
+        const { user, token } = response.data;
+
         // Update Global State
-        store.update('isLogged', true);
-        store.update('loggedUser', loggedUser.data);
+        store.update('token', token);
+        store.update('loggedUser', user);
+
+        socket.emit('user-id', user.id);
 
         this.$router.push('/chat');
       } catch (error) {
-        this.$vToastify.error({
-          title: 'Erro:',
-          body: error.response.data.error,
-        });
+        this.error = error.message;
+        // this.error = error.response.data.error;
       }
     },
   },
@@ -79,9 +82,13 @@ form {
 }
 
 .error {
-  background: red;
-  color: #fff;
-  /* text-align: center; */
+  display: block;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 5px;
+  text-align: center;
+  padding: 10px;
+  margin: 10px 0px;
 }
 
 input {

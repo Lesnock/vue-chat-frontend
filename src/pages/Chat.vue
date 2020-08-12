@@ -3,6 +3,7 @@
     <header class="top">
       <span class="user-name">{{ loggedUser.name }}</span>
       <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
+      <span @click="logout">Sair</span>
     </header>
 
     <div class="bottom">
@@ -57,25 +58,51 @@ export default {
       loggedUser: store.get('loggedUser'),
       messagesEl: null,
       messages: [],
-      currentContact: null,
+      currentContact: store.get('currentContact'),
     };
   },
 
   watch: {
-    currentContact: async function (contact) {
-      const messages = await api.get(
+    currentContact: async function (currentContact) {
+      this.messages = await this.getMessages(currentContact);
+    },
+  },
+
+  async created() {
+    if (this.currentContact) {
+      this.messages = await this.getMessages(this.currentContact);
+    }
+
+    // Set listener to current Contact
+    store.listen(
+      'currentContact',
+      (contact) => (this.currentContact = contact)
+    );
+  },
+
+  updated() {
+    this.scrollToBottom();
+  },
+
+  mounted() {
+    // Define elements
+    this.messagesEl = document.getElementsByClassName('messages')[0];
+  },
+  methods: {
+    async getMessages(contact) {
+      const response = await api.get(
         `/messages/${this.loggedUser.id}/${contact.id}`
       );
 
       let lastMessageDay = null; //eslint-disable-line
 
       // Set date object and add isNewDay prop
-      this.messages = messages.data.map((message) => {
+      const messages = response.data.map((message) => {
         // Change to zoned time
         const date = utcToZonedTime(message.date, 'America/Sao_Paulo');
 
         // Verify if message its in a new day
-        const currentDay = date.getDay() + '/' + date.getMonth();
+        const currentDay = `${date.getDay()}/${date.getMonth()}`;
         const isNewDay = currentDay !== lastMessageDay;
         lastMessageDay = currentDay;
 
@@ -93,39 +120,18 @@ export default {
           isMine,
         };
       });
+
+      return messages;
     },
-  },
 
-  beforeCreate() {
-    if (!store.get('isLogged')) {
-      this.$router.push('/');
-    }
-  },
-
-  created() {
-    store.listen(
-      'currentContact',
-      (contact) => (this.currentContact = contact)
-    );
-
-    console.log(store.get('loggedUser'));
-  },
-
-  updated() {
-    this.scrollToBottom();
-  },
-
-  mounted() {
-    // Define elements
-    this.messagesEl = document.getElementsByClassName('messages')[0];
-  },
-  methods: {
     clearInput() {
       this.text = '';
     },
+
     scrollToBottom() {
       this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
     },
+
     async sendMessage() {
       if (!this.text.length || !this.currentContact) {
         return;
@@ -152,8 +158,10 @@ export default {
 
       this.scrollToBottom();
     },
-    setRecipient(recipient) {
-      this.recipient = recipient;
+
+    logout() {
+      store.update('token', null);
+      this.$router.push('/');
     },
   },
 };

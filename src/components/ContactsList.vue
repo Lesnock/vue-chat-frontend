@@ -30,6 +30,7 @@ export default {
 
   async created() {
     const res = await api.get('/users');
+
     this.contacts = res.data;
 
     this.contacts = this.contacts.filter((contact) => {

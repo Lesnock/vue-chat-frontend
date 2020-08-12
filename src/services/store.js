@@ -5,7 +5,7 @@ const store = new Store({
 })
 
 // Login
-!store.has('isLogged') && store.add('isLogged', false);
+!store.has('token') && store.add('token', false);
 !store.has('loggedUser') && store.add('loggedUser', null);
 
 !store.has('currentContact') && store.add('currentContact', null);
