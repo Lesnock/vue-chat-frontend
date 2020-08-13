@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
     <ul class="list" v-if="contacts.length > 0">
       <li
         v-for="contact in contacts"
@@ -9,6 +10,7 @@
       >
         <img :src="require('../assets/' + contact.avatar)" alt="Contact" />
         <span>{{contact.name}}</span>
+        <span v-show="notViewed[contact.id]" class="not-viewed-number">{{ notViewed[contact.id] }}</span>
       </li>
     </ul>
   </div>
@@ -28,6 +30,7 @@ export default {
       contacts: [],
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
+      notViewed: {},
     };
   },
 
@@ -46,16 +49,32 @@ export default {
       (contact) => (this.currentContact = contact)
     );
 
+    // on Receive Message
     socket.on('receive-message', (message) => {
-      if (this.currentContact.id === message.sender_id) {
-        alert('new Message from this contact');
+      // If user is in other contact
+      if (this.currentContact.id !== message.sender_id) {
+        if (!this.notViewed[message.sender_id]) {
+          this.notViewed = { ...this.notViewed, [message.sender_id]: 1 };
+        } else {
+          const currentnotViewed = this.notViewed[message.sender_id];
+          this.notViewed = {
+            ...this.notViewed,
+            [message.sender_id]: currentnotViewed + 1,
+          };
+        }
       }
+
+      const notificationSound = document.getElementById('notification-sound');
+      notificationSound.play();
     });
   },
 
   methods: {
     setCurrentContact(contact) {
       store.update('currentContact', contact);
+      if (this.notViewed[contact.id]) {
+        this.notViewed[contact.id] = 0;
+      }
     },
   },
 };
@@ -101,5 +120,19 @@ export default {
   height: 50px;
   border-radius: 50%;
   margin-right: 10px;
+}
+
+.list li .not-viewed-number {
+  background: rgba(04, 196, 133, 1);
+  border-radius: 50%;
+  color: white;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-self: flex-end;
 }
 </style>

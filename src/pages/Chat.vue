@@ -88,7 +88,18 @@ export default {
     // On receive message
     socket.on('receive-message', (message) => {
       if (this.currentContact.id === message.sender_id) {
-        alert('new Message from this contact');
+        const date = utcToZonedTime(message.date, 'America/Sao_Paulo');
+
+        // Add Hour format
+        const hour = format(date, 'HH:mm');
+
+        this.messages.push({
+          ...message,
+          isNewDay: false,
+          date,
+          hour,
+          isMine: false,
+        });
       }
     });
   },
