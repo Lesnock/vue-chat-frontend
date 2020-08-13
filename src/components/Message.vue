@@ -66,6 +66,7 @@ export default {
 
 .text {
   margin-right: 40px;
+  font-size: 14px;
 }
 
 .hour {

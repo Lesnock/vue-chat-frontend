@@ -14,22 +14,22 @@
           :isNewDay="message.isNewDay"
         />
       </div>
-      <div class="typing" v-if="currentContact">
-        <input type="text" v-model="text" @keydown.enter="sendMessage" />
-
-        <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage" />
-      </div>
+      <Typing :setMessage="setMessage" />
     </div>
   </div>
 </template>
 
 <script>
+// Components
 import ContactsList from '../components/ContactsList.vue';
 import Message from '../components/Message.vue';
-import { getSocket } from '../services/socket';
-import store from '../services/store';
+import Typing from '../components/Typing.vue';
+
 import api from '../services/api';
-import { format, zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import store from '../services/store';
+import { getSocket } from '../services/socket';
+import authMiddleware from '../middlewares/auth';
+import { format, utcToZonedTime } from 'date-fns-tz';
 
 const socket = getSocket();
 
@@ -38,6 +38,7 @@ export default {
   components: {
     ContactsList,
     Message,
+    Typing,
   },
 
   data() {
@@ -58,19 +59,16 @@ export default {
   },
 
   beforeCreate() {
+    authMiddleware();
+
     store.update('currentContact', null);
   },
 
   async created() {
-    if (!this.loggedUser) {
-      return this.$router.push('/');
-    }
-
     // Set listener to current Contact
-    store.listen(
-      'currentContact',
-      (contact) => (this.currentContact = contact)
-    );
+    store.listen('currentContact', (contact) => {
+      this.currentContact = contact;
+    });
 
     // On receive message
     socket.on('receive-message', (message) => {
@@ -104,9 +102,9 @@ export default {
     this.messagesEl = document.getElementsByClassName('messages')[0];
   },
   methods: {
-    async getMessages(contact) {
+    getMessages: async function (contact) {
       const response = await api
-        .get(`/messages/${this.loggedUser.id}/${contact.id}`)
+        .get(`/messages/${this.loggedUser.id}/${contact.id}/${this.offset}`)
         .catch((error) => {
           console.log(error);
           this.$router.push('/');
@@ -142,38 +140,12 @@ export default {
       return messages;
     },
 
-    clearInput() {
-      this.text = '';
-    },
-
     scrollToBottom() {
       this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
     },
 
-    async sendMessage() {
-      if (!this.text.length || !this.currentContact) {
-        return;
-      }
-
-      // Change to UTC
-      const date = zonedTimeToUtc(new Date(), 'America/Sao_Paulo');
-
-      const message = {
-        sender_id: this.loggedUser.id,
-        recipient_id: this.currentContact.id,
-        text: this.text,
-        date,
-      };
-
-      // Send message
-      socket.emit('send-message', message);
-
-      message.hour = format(date, 'HH:mm');
-      message.isMine = true;
-      await this.messages.push(message);
-
-      this.clearInput();
-
+    setMessage(message) {
+      this.messages.push(message);
       this.scrollToBottom();
     },
   },
@@ -199,37 +171,5 @@ export default {
   overflow-y: auto;
   padding: 0px 2% 20px;
   background-color: var(--messages-bg);
-}
-
-.typing {
-  height: 10%;
-  padding: 0px 20px;
-  position: relative;
-  background: #eee;
-
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.typing input {
-  width: 100%;
-  height: 80%;
-  border-radius: 30px;
-  border: 1px solid #ccc;
-  outline: 0;
-  padding: 0px 20px;
-  font-size: 20px;
-  color: #333;
-
-  display: flex;
-  align-items: center;
-}
-
-.typing .send-icon {
-  position: absolute;
-  right: 35px;
-  width: 25px;
-  cursor: pointer;
 }
 </style>

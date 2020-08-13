@@ -6,7 +6,6 @@ const api = axios.create({
 })
 
 api.interceptors.request.use(request => {
-  console.log(request.url)
   const token = store.get('token')
 
   if (token) {
