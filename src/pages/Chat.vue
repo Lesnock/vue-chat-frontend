@@ -70,13 +70,13 @@ export default {
     },
   },
 
+  beforeCreate() {
+    store.update('currentContact', null);
+  },
+
   async created() {
     if (!this.loggedUser) {
       return this.$router.push('/');
-    }
-
-    if (this.currentContact) {
-      this.messages = await this.getMessages(this.currentContact);
     }
 
     // Set listener to current Contact
@@ -87,6 +87,10 @@ export default {
 
     // On receive message
     socket.on('receive-message', (message) => {
+      if (!this.currentContact) {
+        return;
+      }
+
       if (this.currentContact.id === message.sender_id) {
         const date = utcToZonedTime(message.date, 'America/Sao_Paulo');
 

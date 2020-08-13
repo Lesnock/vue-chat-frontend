@@ -52,7 +52,10 @@ export default {
     // on Receive Message
     socket.on('receive-message', (message) => {
       // If user is in other contact
-      if (this.currentContact.id !== message.sender_id) {
+      if (
+        !this.currentContact ||
+        this.currentContact.id !== message.sender_id
+      ) {
         if (!this.notViewed[message.sender_id]) {
           this.notViewed = { ...this.notViewed, [message.sender_id]: 1 };
         } else {
@@ -64,8 +67,8 @@ export default {
         }
       }
 
-      const notificationSound = document.getElementById('notification-sound');
-      notificationSound.play();
+      // Play audio ever when a message is received
+      this.playNotificationSound();
     });
   },
 
@@ -75,6 +78,10 @@ export default {
       if (this.notViewed[contact.id]) {
         this.notViewed[contact.id] = 0;
       }
+    },
+    playNotificationSound() {
+      const notificationSound = document.getElementById('notification-sound');
+      notificationSound.play();
     },
   },
 };
