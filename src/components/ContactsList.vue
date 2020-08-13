@@ -1,6 +1,13 @@
 <template>
   <div class="container">
     <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
+
+    <header class="top">
+      <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
+      <span class="user-name">{{ loggedUser.name }}</span>
+      <span class="logout-button" @click="logout">Sair</span>
+    </header>
+
     <ul class="list" v-if="contacts.length > 0">
       <li
         v-for="contact in contacts"
@@ -62,6 +69,9 @@ export default {
         } else {
           this.notViewed[message.sender_id]++;
         }
+      } else {
+        // Its inside the conversation
+        this.markMessagesAsViewed(message.sender_id);
       }
 
       // Play audio ever when a message is received
@@ -81,6 +91,8 @@ export default {
     },
     playNotificationSound() {
       const notificationSound = document.getElementById('notification-sound');
+      notificationSound.pause();
+      notificationSound.currentTime = 0;
       notificationSound.play();
     },
     async getMessagesNotViewedCount() {
@@ -98,6 +110,14 @@ export default {
         console.log(error);
       }
     },
+    logout() {
+      store.update('token', null);
+      store.update('loggedUser', null);
+
+      socket.emit('logout');
+
+      this.$router.push('/');
+    },
   },
 };
 </script>
@@ -105,35 +125,60 @@ export default {
 <style scoped>
 .container {
   height: 100%;
-  width: 30vw;
-  border-right: 1px solid #ccc;
+  min-width: 30vw;
+  background-color: var(--header-bg);
+  flex-grow: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  height: 100px;
+  background: var(--header-bg);
+  color: #fff;
+  border-bottom: 1px solid #444;
+  padding: 15px;
+
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  background: #fff;
+  margin-right: 10px;
+}
+
+.user-name {
+  font-size: 18px;
+}
+
+.logout-button {
+  margin-left: auto;
+  cursor: pointer;
 }
 
 .list {
   width: 100%;
-  height: 100%;
+  /* height: 100%; */
 }
 
 .list li {
   padding: 10px;
   cursor: pointer;
-  background: #fff;
+  border-bottom: 1px solid #444;
+  background: var(--contact-bg);
+  color: #fff;
 
   display: flex;
   align-items: center;
 }
 
 .list li.selected {
-  background: #ccc;
-}
-
-.list > li + li {
-  border-top: 1px solid #ccc;
-}
-
-.list li:hover {
-  background: #ccc;
-  transition: background-color 0.2s;
+  background: var(--messages-bg);
 }
 
 .list img {

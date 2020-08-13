@@ -1,36 +1,23 @@
 <template>
   <div class="container">
-    <header class="top">
-      <span class="user-name">{{ loggedUser.name }}</span>
-      <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
-      <span class="logout-button" @click="logout">Sair</span>
-    </header>
+    <ContactsList />
 
-    <div class="bottom">
-      <ContactsList />
+    <div class="main">
+      <div class="messages">
+        <Message
+          v-for="message of messages"
+          :key="`${message.date.getTime()}`"
+          :text="message.text"
+          :date="message.date"
+          :hour="message.hour"
+          :isMine="message.isMine"
+          :isNewDay="message.isNewDay"
+        />
+      </div>
+      <div class="typing" v-if="currentContact">
+        <input type="text" v-model="text" @keydown.enter="sendMessage" />
 
-      <div class="main">
-        <div class="messages">
-          <Message
-            v-for="message of messages"
-            :key="`${message.date.getTime()}`"
-            :text="message.text"
-            :date="message.date"
-            :hour="message.hour"
-            :isMine="message.isMine"
-            :isNewDay="message.isNewDay"
-          />
-        </div>
-        <div class="typing" v-if="currentContact">
-          <input type="text" v-model="text" @keydown.enter="sendMessage" />
-
-          <img
-            class="send-icon"
-            src="../assets/icons/send-icon.svg"
-            alt="Send"
-            @click="sendMessage"
-          />
-        </div>
+        <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage" />
       </div>
     </div>
   </div>
@@ -189,58 +176,14 @@ export default {
 
       this.scrollToBottom();
     },
-
-    logout() {
-      store.update('token', null);
-      store.update('loggedUser', null);
-
-      socket.emit('logout');
-
-      this.$router.push('/');
-    },
   },
 };
 </script>
 
 <style scoped>
 .container {
+  display: flex;
   height: 100%;
-
-  display: flex;
-  flex-direction: column;
-}
-
-.top {
-  height: 80px;
-  background: var(--header-bg);
-  color: #fff;
-  padding: 20px;
-
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.logout-button {
-  margin-left: 20px;
-  cursor: pointer;
-}
-
-.bottom {
-  height: 100%;
-  display: flex;
-}
-
-.avatar {
-  height: 60px;
-  width: 60px;
-  border-radius: 50%;
-  background: #fff;
-  margin-left: 15px;
-}
-
-.user-name {
-  font-size: 24px;
 }
 
 .main {
@@ -252,14 +195,10 @@ export default {
 }
 
 .messages {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  flex-grow: 1;
-  flex-shrink: 1;
-  padding: 0px 2% 20px;
+  height: 100%;
   overflow-y: auto;
-  height: 0px;
+  padding: 0px 2% 20px;
+  background-color: var(--messages-bg);
 }
 
 .typing {
@@ -270,6 +209,7 @@ export default {
 
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .typing input {
