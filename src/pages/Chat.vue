@@ -3,7 +3,7 @@
     <header class="top">
       <span class="user-name">{{ loggedUser.name }}</span>
       <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
-      <span @click="logout">Sair</span>
+      <span class="logout-button" @click="logout">Sair</span>
     </header>
 
     <div class="bottom">
@@ -221,9 +221,13 @@ export default {
   align-items: center;
 }
 
+.logout-button {
+  margin-left: 20px;
+  cursor: pointer;
+}
+
 .bottom {
   height: 100%;
-
   display: flex;
 }
 
@@ -250,6 +254,7 @@ export default {
 .messages {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   flex-grow: 1;
   flex-shrink: 1;
   padding: 0px 2% 20px;

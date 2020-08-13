@@ -35,13 +35,14 @@ export default {
   },
 
   async created() {
-    const res = await api.get('/users');
-
-    this.contacts = res.data;
+    const usersResponse = await api.get('/users');
+    this.contacts = usersResponse.data;
 
     this.contacts = this.contacts.filter((contact) => {
       return contact.id !== this.loggedUser.id;
     });
+
+    this.notViewed = await this.getMessagesNotViewedCount();
 
     // Create listener
     store.listen(
@@ -57,31 +58,45 @@ export default {
         this.currentContact.id !== message.sender_id
       ) {
         if (!this.notViewed[message.sender_id]) {
-          this.notViewed = { ...this.notViewed, [message.sender_id]: 1 };
+          this.notViewed[message.sender_id] = 1;
         } else {
-          const currentnotViewed = this.notViewed[message.sender_id];
-          this.notViewed = {
-            ...this.notViewed,
-            [message.sender_id]: currentnotViewed + 1,
-          };
+          this.notViewed[message.sender_id]++;
         }
       }
 
       // Play audio ever when a message is received
       this.playNotificationSound();
+
+      this.$forceUpdate();
     });
   },
 
   methods: {
     setCurrentContact(contact) {
       store.update('currentContact', contact);
+
       if (this.notViewed[contact.id]) {
-        this.notViewed[contact.id] = 0;
+        this.markMessagesAsViewed(contact.id);
       }
     },
     playNotificationSound() {
       const notificationSound = document.getElementById('notification-sound');
       notificationSound.play();
+    },
+    async getMessagesNotViewedCount() {
+      const response = await api.get(
+        `/messages/${this.loggedUser.id}/not-viewed-messages-count`
+      );
+
+      return response.data;
+    },
+    async markMessagesAsViewed(contactId) {
+      try {
+        this.notViewed[contactId] = 0;
+        api.get(`/messages/${this.loggedUser.id}/mark-as-viewed/${contactId}`);
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };
