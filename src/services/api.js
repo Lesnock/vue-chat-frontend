@@ -27,8 +27,6 @@ api.interceptors.response.use((response) => response, error => {
   }
 
   throw new Error('Erro não identificado')
-  // Redirect for login page
-  // return location.href = '/'
 })
 
 export default api

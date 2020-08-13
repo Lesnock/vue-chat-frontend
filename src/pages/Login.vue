@@ -13,7 +13,10 @@
 <script>
 import api from '../services/api';
 import store from '../services/store';
-import socket from '../services/socket';
+import { connectSocket, getSocket } from '../services/socket';
+
+connectSocket();
+const socket = getSocket();
 
 export default {
   name: 'Login',

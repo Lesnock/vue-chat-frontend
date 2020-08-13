@@ -39,10 +39,12 @@
 <script>
 import ContactsList from '../components/ContactsList.vue';
 import Message from '../components/Message.vue';
-import socket from '../services/socket';
+import { getSocket } from '../services/socket';
 import store from '../services/store';
 import api from '../services/api';
 import { format, zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+
+const socket = getSocket();
 
 export default {
   name: 'Chat',
@@ -69,6 +71,10 @@ export default {
   },
 
   async created() {
+    if (!this.loggedUser) {
+      return this.$router.push('/');
+    }
+
     if (this.currentContact) {
       this.messages = await this.getMessages(this.currentContact);
     }
@@ -78,6 +84,13 @@ export default {
       'currentContact',
       (contact) => (this.currentContact = contact)
     );
+
+    // On receive message
+    socket.on('receive-message', (message) => {
+      if (this.currentContact.id === message.sender_id) {
+        alert('new Message from this contact');
+      }
+    });
   },
 
   updated() {
@@ -90,9 +103,12 @@ export default {
   },
   methods: {
     async getMessages(contact) {
-      const response = await api.get(
-        `/messages/${this.loggedUser.id}/${contact.id}`
-      );
+      const response = await api
+        .get(`/messages/${this.loggedUser.id}/${contact.id}`)
+        .catch((error) => {
+          console.log(error);
+          this.$router.push('/');
+        });
 
       let lastMessageDay = null; //eslint-disable-line
 
@@ -161,6 +177,10 @@ export default {
 
     logout() {
       store.update('token', null);
+      store.update('loggedUser', null);
+
+      socket.emit('logout');
+
       this.$router.push('/');
     },
   },

@@ -17,6 +17,9 @@
 <script>
 import api from '../services/api';
 import store from '../services/store';
+import { getSocket } from '../services/socket';
+
+const socket = getSocket();
 
 export default {
   name: 'ContactsList',
@@ -42,6 +45,12 @@ export default {
       'currentContact',
       (contact) => (this.currentContact = contact)
     );
+
+    socket.on('receive-message', (message) => {
+      if (this.currentContact.id === message.sender_id) {
+        alert('new Message from this contact');
+      }
+    });
   },
 
   methods: {
