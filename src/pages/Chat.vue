@@ -155,7 +155,7 @@ export default {
 <style scoped>
 .container {
   display: flex;
-  height: 100%;
+  height: 100vh;
 }
 
 .main {
@@ -167,8 +167,10 @@ export default {
 }
 
 .messages {
-  height: 100%;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 0px 2% 20px;
   background-color: var(--messages-bg);
 }

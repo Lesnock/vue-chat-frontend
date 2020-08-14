@@ -4,7 +4,7 @@ import store from './store'
 const socket = {}
 
 export function connectSocket() {
-  socket.connection = io('http://10.0.2.34:3000')
+  socket.connection = io('http://localhost:3000')
 
   socket.connection.on('connect', () => {
     if (store.get('loggedUser')) {

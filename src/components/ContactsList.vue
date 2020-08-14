@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="contacts-list-container">
     <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
 
     <header class="top">
@@ -123,9 +123,10 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.contacts-list-container {
+  width: 30vw;
   height: 100%;
-  min-width: 30vw;
+  min-width: 300px;
   background-color: var(--header-bg);
   flex-grow: 1;
 
