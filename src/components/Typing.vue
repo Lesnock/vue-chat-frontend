@@ -16,6 +16,7 @@ const socket = getSocket();
 export default {
   props: {
     setMessage: Function,
+    scrollToBottom: Function,
   },
   data() {
     return {
@@ -59,6 +60,10 @@ export default {
       message.isMine = true;
 
       this.setMessage(message);
+
+      setTimeout(() => {
+        this.scrollToBottom();
+      }, 50);
 
       this.clearInput();
     },

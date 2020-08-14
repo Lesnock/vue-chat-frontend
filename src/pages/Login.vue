@@ -13,6 +13,7 @@
 <script>
 import api from '../services/api';
 import store from '../services/store';
+import { publicPage } from '../services/auth';
 import { connectSocket, getSocket } from '../services/socket';
 
 connectSocket();
@@ -29,10 +30,8 @@ export default {
     };
   },
 
-  async beforeCreate() {
-    if (store.get('token')) {
-      this.$router.push('/chat');
-    }
+  beforeCreate: async function () {
+    publicPage();
   },
 
   methods: {

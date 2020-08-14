@@ -4,9 +4,11 @@
 
     <div class="main">
       <div class="messages">
+        <Loading :isLoading="loading" />
+        <span class="load-more" v-if="!loadedAll" @click="getMoreMessages">Carregar mais</span>
         <Message
           v-for="message of messages"
-          :key="`${message.date.getTime()}`"
+          :key="`${message.id}`"
           :text="message.text"
           :date="message.date"
           :hour="message.hour"
@@ -14,7 +16,7 @@
           :isNewDay="message.isNewDay"
         />
       </div>
-      <Typing :setMessage="setMessage" />
+      <Typing :setMessage="setMessage" :scrollToBottom="scrollToBottom" />
     </div>
   </div>
 </template>
@@ -23,12 +25,14 @@
 // Components
 import ContactsList from '../components/ContactsList.vue';
 import Message from '../components/Message.vue';
+import Loading from '../components/Loading.vue';
 import Typing from '../components/Typing.vue';
 
 import api from '../services/api';
+import { delay } from '../helpers';
 import store from '../services/store';
 import { getSocket } from '../services/socket';
-import authMiddleware from '../middlewares/auth';
+import { privatePage } from '../services/auth';
 import { format, utcToZonedTime } from 'date-fns-tz';
 
 const socket = getSocket();
@@ -38,16 +42,19 @@ export default {
   components: {
     ContactsList,
     Message,
+    Loading,
     Typing,
   },
 
   data() {
     return {
       text: '',
+      loading: false,
       offset: 0,
       loggedUser: store.get('loggedUser'),
       messagesEl: null,
       messages: [],
+      totalMessages: 0,
       currentContact: store.get('currentContact'),
     };
   },
@@ -55,15 +62,13 @@ export default {
   watch: {
     currentContact: async function (currentContact) {
       this.messages = await this.getMessages(currentContact);
-      setTimeout(() => {
-        this.scrollToBottom()
-      }, 50)
+      this.totalMessages = await this.getTotalMessages();
+      this.$nextTick(this.scrollToBottom);
     },
   },
 
   beforeCreate() {
-    authMiddleware();
-
+    privatePage();
     store.update('currentContact', null);
   },
 
@@ -71,6 +76,7 @@ export default {
     // Set listener to current Contact
     store.listen('currentContact', (contact) => {
       this.currentContact = contact;
+      this.offset = 0;
     });
 
     // On receive message
@@ -92,6 +98,10 @@ export default {
           hour,
           isMine: false,
         });
+
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
       }
     });
   },
@@ -103,20 +113,14 @@ export default {
   mounted() {
     // Define elements
     this.messagesEl = document.getElementsByClassName('messages')[0];
-
-    this.messagesEl.addEventListener('scroll', async () => {
-      const topMessage = this.messagesEl.firstChild
-
-      if (this.messagesEl.scrollTop === 0) {
-        this.offset += 20
-        const messages = await this.getMessages(this.currentContact)
-
-        this.messages.unshift(...messages)
-        this.messagesEl.scrollTo(0, topMessage.scrollHeight - 40)
-        this.$forceUpdate()
-      }
-    })
   },
+
+  computed: {
+    loadedAll() {
+      return this.messages.length === this.totalMessages;
+    },
+  },
+
   methods: {
     getMessages: async function (contact) {
       const response = await api
@@ -156,6 +160,38 @@ export default {
       return messages;
     },
 
+    getMoreMessages: async function () {
+      if (this.loadedAll) {
+        return;
+      }
+
+      this.loading = true;
+      this.offset += 50;
+      const messages = await this.getMessages(this.currentContact);
+
+      let topMessage = document.getElementsByClassName('message-container')[0];
+
+      await delay(500);
+
+      this.messages.unshift(...messages);
+      this.loading = false;
+
+      this.$nextTick(() => {
+        this.messagesEl.scrollTo(0, topMessage.offsetTop);
+      });
+    },
+
+    getTotalMessages: async function () {
+      const total = await api
+        .get(`/messages/count/${this.loggedUser.id}/${this.currentContact.id}`)
+        .catch((error) => {
+          console.log(error);
+          alert('Não foi possível carregar o total de mensagens...');
+        });
+
+      return total.data.count;
+    },
+
     scrollToBottom() {
       this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
     },
@@ -177,6 +213,7 @@ export default {
 .main {
   width: 100%;
   height: 100%;
+  background-color: var(--messages-bg);
 
   display: flex;
   flex-direction: column;
@@ -186,8 +223,14 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  margin-top: auto;
   padding: 0px 2% 20px;
   background-color: var(--messages-bg);
+}
+
+.load-more {
+  text-align: center;
+  padding: 15px;
+  cursor: pointer;
 }
 </style>

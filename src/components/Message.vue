@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="message-container">
     <span v-if="isNewDay" class="day">{{ dayAndMonth }}</span>
 
     <div class="message" :class="[isMine ? 'mine' : '']">
@@ -36,11 +36,14 @@ export default {
 </script>
 
 <style scoped>
-.wrapper {
+.message-container {
   display: flex;
   flex-direction: column;
+  /* min-height: 70px; */
+  /*
   flex-grow: 1;
   flex-shrink: 1;
+  margin-top: auto; */
 }
 
 .message {
@@ -50,7 +53,6 @@ export default {
   margin: 20px 20px 0px;
   border-radius: 10px;
   font-size: 14px;
-  position: relative;
   align-self: flex-start;
 }
 

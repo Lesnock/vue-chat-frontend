@@ -91,9 +91,13 @@ export default {
     },
     playNotificationSound() {
       const notificationSound = document.getElementById('notification-sound');
-      notificationSound.pause();
-      notificationSound.currentTime = 0;
+
+      if (notificationSound.currentTime > 0 && !notificationSound.paused) {
+        notificationSound.pause();
+      }
+
       notificationSound.play();
+      notificationSound.currentTime = 0;
     },
     async getMessagesNotViewedCount() {
       const response = await api.get(
