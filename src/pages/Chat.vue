@@ -55,6 +55,9 @@ export default {
   watch: {
     currentContact: async function (currentContact) {
       this.messages = await this.getMessages(currentContact);
+      setTimeout(() => {
+        this.scrollToBottom()
+      }, 50)
     },
   },
 
@@ -94,12 +97,25 @@ export default {
   },
 
   updated() {
-    this.scrollToBottom();
+    // this.scrollToBottom();
   },
 
   mounted() {
     // Define elements
     this.messagesEl = document.getElementsByClassName('messages')[0];
+
+    this.messagesEl.addEventListener('scroll', async () => {
+      const topMessage = this.messagesEl.firstChild
+
+      if (this.messagesEl.scrollTop === 0) {
+        this.offset += 20
+        const messages = await this.getMessages(this.currentContact)
+
+        this.messages.unshift(...messages)
+        this.messagesEl.scrollTo(0, topMessage.scrollHeight - 40)
+        this.$forceUpdate()
+      }
+    })
   },
   methods: {
     getMessages: async function (contact) {
