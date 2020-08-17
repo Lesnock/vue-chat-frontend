@@ -1,6 +1,6 @@
 <template>
   <div class="typing" v-if="currentContact">
-    <input type="text" v-model="text" @keydown.enter="sendMessage" />
+    <input v-model="text" @keydown.enter="sendMessage" />
 
     <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage" />
   </div>
@@ -8,7 +8,7 @@
 
 <script>
 import { format, zonedTimeToUtc } from 'date-fns-tz';
-import { v4 as uuid } from 'uuid'
+import { v4 as uuid } from 'uuid';
 import store from '../services/store';
 import { getSocket } from '../services/socket';
 
@@ -19,6 +19,7 @@ export default {
     addMessage: Function,
     scrollToBottom: Function,
   },
+
   data() {
     return {
       text: '',
@@ -39,7 +40,11 @@ export default {
   },
 
   methods: {
-    sendMessage: async function () {
+    sendMessage: async function (event) {
+      if (event.shiftKey) {
+        return;
+      }
+
       if (!this.text.length || !this.currentContact) {
         return;
       }
@@ -63,7 +68,7 @@ export default {
 
       this.addMessage(message);
 
-      this.$nextTick(this.scrollToBottom)
+      this.$nextTick(this.scrollToBottom);
 
       this.clearInput();
     },
@@ -97,9 +102,7 @@ export default {
   padding-right: 50px;
   font-size: 20px;
   color: #333;
-
-  display: flex;
-  align-items: center;
+  resize: none;
 }
 
 .typing .send-icon {

@@ -5,7 +5,7 @@
     <div class="main">
       <div class="messages">
         <Loading :isLoading="loading" />
-        <span class="load-more" v-if="!loadedAll" @click="getMoreMessages">Carregar mais</span>
+        <span class="load-more" v-if="!hasLoadedAll" @click="getMoreMessages">Carregar mais</span>
         <Message
           v-for="message of messages"
           :key="`${message.uuid}`"
@@ -61,6 +61,16 @@ export default {
     };
   },
 
+  computed: {
+    hasLoadedAll() {
+      return this.messages.length === this.totalMessages;
+    },
+
+    lastMessage() {
+      return this.messages[this.messages.length - 1];
+    },
+  },
+
   watch: {
     currentContact: async function (currentContact) {
       this.messages = await this.getMessages(currentContact);
@@ -101,7 +111,7 @@ export default {
           isMine: false,
         });
 
-        socket.emit('user-viewed-messages', this.currentContact.id)
+        socket.emit('user-viewed-messages', this.currentContact.id);
 
         this.$nextTick(() => {
           this.scrollToBottom();
@@ -110,49 +120,41 @@ export default {
     });
 
     socket.on('message-delivered', (messageUuid) => {
-      this.messages = this.messages.map(message => {
+      this.messages = this.messages.map((message) => {
         if (message.uuid === messageUuid) {
-          message.received = true
+          message.received = true;
         }
 
-        return message
-      })
-    })
+        return message;
+      });
+    });
 
-    socket.on('new-user-online', contactId => {
+    socket.on('new-user-online', (contactId) => {
       if (this.currentContact && this.currentContact.id === contactId) {
-        this.messages = this.messages.map(message => {
+        this.messages = this.messages.map((message) => {
           return {
             ...message,
-            received: true
-          }
-        })
+            received: true,
+          };
+        });
       }
-    })
+    });
 
-    socket.on('user-viewed-messages', contactId => {
-      console.log('out')
+    socket.on('user-viewed-messages', (contactId) => {
       if (this.currentContact && this.currentContact.id === contactId) {
-        console.log('in')
-        this.messages = this.messages.map(message => {
+        this.messages = this.messages.map((message) => {
           return {
             ...message,
-            viewed: true
-          }
-        })
+            viewed: true,
+          };
+        });
       }
-    })
+    });
   },
 
   mounted() {
     // Define elements
     this.messagesEl = document.getElementsByClassName('messages')[0];
-  },
-
-  computed: {
-    loadedAll() {
-      return this.messages.length === this.totalMessages;
-    },
   },
 
   methods: {
@@ -195,7 +197,7 @@ export default {
     },
 
     getMoreMessages: async function () {
-      if (this.loadedAll) {
+      if (this.hasLoadedAll) {
         return;
       }
 

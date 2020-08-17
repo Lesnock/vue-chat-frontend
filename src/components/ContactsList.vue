@@ -12,7 +12,10 @@
       <li
         v-for="contact in contacts"
         :key="contact.id"
-        :class="[currentContact && contact.id === currentContact.id ? 'selected' : '']"
+        :class="[
+          currentContact && contact.id === currentContact.id ? 'selected' : '',
+          onlineUsers.includes(contact.id) ? 'online' : ''
+        ]"
         @click="setCurrentContact(contact)"
       >
         <img :src="require('../assets/' + contact.avatar)" alt="Contact" />
@@ -38,12 +41,13 @@ export default {
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
       notViewed: {},
+      onlineUsers: [],
     };
   },
 
   async created() {
-    const usersResponse = await api.get('/users');
-    this.contacts = usersResponse.data;
+    const contacts = await api.get('/users');
+    this.contacts = contacts.data;
 
     this.contacts = this.contacts.filter((contact) => {
       return contact.id !== this.loggedUser.id;
@@ -56,6 +60,25 @@ export default {
       'currentContact',
       (contact) => (this.currentContact = contact)
     );
+
+    socket.emit('get-online-users');
+    socket.on('online-users', (onlineUsers) => {
+      for (const socketId in onlineUsers) {
+        this.onlineUsers.push(onlineUsers[socketId]);
+      }
+    });
+
+    socket.on('new-user-online', (contactId) => {
+      if (!this.onlineUsers.includes(contactId)) {
+        this.onlineUsers.push(contactId);
+      }
+    });
+
+    socket.on('user-disconnected', (contactId) => {
+      this.onlineUsers = this.onlineUsers.filter(
+        (userId) => userId !== contactId
+      );
+    });
 
     // on Receive Message
     socket.on('receive-message', (message) => {
@@ -83,16 +106,21 @@ export default {
     });
   },
 
+  mounted() {
+    //
+  },
+
   methods: {
     setCurrentContact(contact) {
       store.update('currentContact', contact);
 
       if (this.notViewed[contact.id]) {
-        this.notViewed[contact.id] = 0
+        this.notViewed[contact.id] = 0;
         this.markContactMessagesAsViewed(contact.id);
-        socket.emit('user-viewed-messages', contact.id)
+        socket.emit('user-viewed-messages', contact.id);
       }
     },
+
     playNotificationSound() {
       const notificationSound = document.getElementById('notification-sound');
 
@@ -103,41 +131,46 @@ export default {
       notificationSound.play();
       notificationSound.currentTime = 0;
     },
-    async getMessagesNotViewedCount() {
-      const response = await api.get(
-        `/messages/count-not-viewed-messages`
-      );
+
+    getMessagesNotViewedCount: async function () {
+      const response = await api.get(`/messages/count-not-viewed-messages`);
 
       return response.data;
     },
-    async markMessageAsViewed(messageUuid) {
-      try {
 
+    markMessageAsViewed: async function (messageUuid) {
+      try {
         api.put(`/messages/${messageUuid}`, {
-          viewed: true
+          viewed: true,
         });
       } catch (error) {
         console.log(error);
       }
     },
-    async markContactMessagesAsViewed(contactId) {
+
+    markContactMessagesAsViewed: async function (contactId) {
       try {
-        api.patch(`/messages/mark?sender_id=${contactId}&recipient_id=${this.loggedUser.id}`, {
-          viewed: true
-        })
+        api.patch(
+          `/messages/mark?sender_id=${contactId}&recipient_id=${this.loggedUser.id}`,
+          {
+            viewed: true,
+          }
+        );
       } catch (error) {
         console.log(error);
       }
     },
-    async markMessagesAsReceived() {
+
+    markMessagesAsReceived: async function () {
       try {
         api.patch(`/messages/mark?recipient_id=${this.loggedUser.id}`, {
-          received: true
+          received: true,
         });
       } catch (error) {
         console.log(error);
       }
     },
+
     logout() {
       store.update('token', null);
       store.update('loggedUser', null);
@@ -192,7 +225,6 @@ header {
 
 .list {
   width: 100%;
-  /* height: 100%; */
 }
 
 .list li {
@@ -210,12 +242,17 @@ header {
   background: var(--messages-bg);
 }
 
-.list img {
+.list li img {
   object-fit: cover;
   width: 50px;
   height: 50px;
   border-radius: 50%;
   margin-right: 10px;
+  border: 3px solid #ccc;
+}
+
+.list li.online img {
+  border: 3px solid rgba(04, 196, 133, 1);
 }
 
 .list li .not-viewed-number {

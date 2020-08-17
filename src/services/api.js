@@ -1,7 +1,7 @@
 import axios from 'axios'
 import store from './store'
 
-const debug = true
+const debug = false
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
