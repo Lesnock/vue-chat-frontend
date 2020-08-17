@@ -17,6 +17,7 @@
   --messages-bg: #4b5d67;
   --contact-bg: #322f3d;
   --contact-selected-bg: #322f3d;
+  --check-color: #32cf5b;
 }
 
 /* Reset */

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import store from './store'
 
-const debug = false
+const debug = true
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(request => {
   if (debug) {
-    console.log('api -- ', request.url)
+    console.log('api -- ', request.method, request.url)
   }
 
   const token = store.get('token')

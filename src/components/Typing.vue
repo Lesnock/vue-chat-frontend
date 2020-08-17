@@ -8,6 +8,7 @@
 
 <script>
 import { format, zonedTimeToUtc } from 'date-fns-tz';
+import { v4 as uuid } from 'uuid'
 import store from '../services/store';
 import { getSocket } from '../services/socket';
 
@@ -15,7 +16,7 @@ const socket = getSocket();
 
 export default {
   props: {
-    setMessage: Function,
+    addMessage: Function,
     scrollToBottom: Function,
   },
   data() {
@@ -47,6 +48,7 @@ export default {
       const date = zonedTimeToUtc(new Date(), 'America/Sao_Paulo');
 
       const message = {
+        uuid: uuid(),
         sender_id: this.loggedUser.id,
         recipient_id: this.currentContact.id,
         text: this.text,
@@ -59,11 +61,9 @@ export default {
       message.hour = format(date, 'HH:mm');
       message.isMine = true;
 
-      this.setMessage(message);
+      this.addMessage(message);
 
-      setTimeout(() => {
-        this.scrollToBottom();
-      }, 50);
+      this.$nextTick(this.scrollToBottom)
 
       this.clearInput();
     },

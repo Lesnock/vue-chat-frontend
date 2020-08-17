@@ -8,15 +8,17 @@
         <span class="load-more" v-if="!loadedAll" @click="getMoreMessages">Carregar mais</span>
         <Message
           v-for="message of messages"
-          :key="`${message.id}`"
+          :key="`${message.uuid}`"
           :text="message.text"
           :date="message.date"
           :hour="message.hour"
           :isMine="message.isMine"
           :isNewDay="message.isNewDay"
+          :isReceived="Boolean(message.received)"
+          :isViewed="Boolean(message.viewed)"
         />
       </div>
-      <Typing :setMessage="setMessage" :scrollToBottom="scrollToBottom" />
+      <Typing :addMessage="addMessage" :scrollToBottom="scrollToBottom" />
     </div>
   </div>
 </template>
@@ -99,15 +101,47 @@ export default {
           isMine: false,
         });
 
+        socket.emit('user-viewed-messages', this.currentContact.id)
+
         this.$nextTick(() => {
           this.scrollToBottom();
         });
       }
     });
-  },
 
-  updated() {
-    // this.scrollToBottom();
+    socket.on('message-delivered', (messageUuid) => {
+      this.messages = this.messages.map(message => {
+        if (message.uuid === messageUuid) {
+          message.received = true
+        }
+
+        return message
+      })
+    })
+
+    socket.on('new-user-online', contactId => {
+      if (this.currentContact && this.currentContact.id === contactId) {
+        this.messages = this.messages.map(message => {
+          return {
+            ...message,
+            received: true
+          }
+        })
+      }
+    })
+
+    socket.on('user-viewed-messages', contactId => {
+      console.log('out')
+      if (this.currentContact && this.currentContact.id === contactId) {
+        console.log('in')
+        this.messages = this.messages.map(message => {
+          return {
+            ...message,
+            viewed: true
+          }
+        })
+      }
+    })
   },
 
   mounted() {
@@ -124,7 +158,7 @@ export default {
   methods: {
     getMessages: async function (contact) {
       const response = await api
-        .get(`/messages/${this.loggedUser.id}/${contact.id}/${this.offset}`)
+        .get(`/messages/${contact.id}?offset=${this.offset}`)
         .catch((error) => {
           console.log(error);
           this.$router.push('/');
@@ -183,7 +217,7 @@ export default {
 
     getTotalMessages: async function () {
       const total = await api
-        .get(`/messages/count/${this.loggedUser.id}/${this.currentContact.id}`)
+        .get(`/messages/count/${this.currentContact.id}`)
         .catch((error) => {
           console.log(error);
           alert('Não foi possível carregar o total de mensagens...');
@@ -196,7 +230,7 @@ export default {
       this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
     },
 
-    setMessage(message) {
+    addMessage(message) {
       this.messages.push(message);
       this.scrollToBottom();
     },

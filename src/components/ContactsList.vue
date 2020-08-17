@@ -65,17 +65,19 @@ export default {
         this.currentContact.id !== message.sender_id
       ) {
         if (!this.notViewed[message.sender_id]) {
-          this.notViewed[message.sender_id] = 1;
-        } else {
-          this.notViewed[message.sender_id]++;
+          this.notViewed[message.sender_id] = 0;
         }
+
+        this.notViewed[message.sender_id]++;
       } else {
         // Its inside the conversation
-        this.markMessagesAsViewed(message.sender_id);
+        this.notViewed[message.sender_id] = 0;
+        this.markMessageAsViewed(message.uuid);
       }
 
       // Play audio ever when a message is received
       this.playNotificationSound();
+      this.markMessagesAsReceived(message.uuid);
 
       this.$forceUpdate();
     });
@@ -86,7 +88,9 @@ export default {
       store.update('currentContact', contact);
 
       if (this.notViewed[contact.id]) {
-        this.markMessagesAsViewed(contact.id);
+        this.notViewed[contact.id] = 0
+        this.markContactMessagesAsViewed(contact.id);
+        socket.emit('user-viewed-messages', contact.id)
       }
     },
     playNotificationSound() {
@@ -101,15 +105,35 @@ export default {
     },
     async getMessagesNotViewedCount() {
       const response = await api.get(
-        `/messages/${this.loggedUser.id}/not-viewed-messages-count`
+        `/messages/count-not-viewed-messages`
       );
 
       return response.data;
     },
-    async markMessagesAsViewed(contactId) {
+    async markMessageAsViewed(messageUuid) {
       try {
-        this.notViewed[contactId] = 0;
-        api.get(`/messages/${this.loggedUser.id}/mark-as-viewed/${contactId}`);
+
+        api.put(`/messages/${messageUuid}`, {
+          viewed: true
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async markContactMessagesAsViewed(contactId) {
+      try {
+        api.patch(`/messages/mark?sender_id=${contactId}&recipient_id=${this.loggedUser.id}`, {
+          viewed: true
+        })
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async markMessagesAsReceived() {
+      try {
+        api.patch(`/messages/mark?recipient_id=${this.loggedUser.id}`, {
+          received: true
+        });
       } catch (error) {
         console.log(error);
       }

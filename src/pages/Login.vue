@@ -55,7 +55,6 @@ export default {
         this.$router.push('/chat');
       } catch (error) {
         this.error = error.message;
-        // this.error = error.response.data.error;
       }
     },
   },
