@@ -17,6 +17,7 @@
           :isReceived="Boolean(message.received)"
           :isViewed="Boolean(message.viewed)"
         />
+        <IsTyping v-if="contactIsTyping" :name="currentContact.name" />
       </div>
       <Typing :addMessage="addMessage" :scrollToBottom="scrollToBottom" />
     </div>
@@ -29,6 +30,7 @@ import ContactsList from '../components/ContactsList.vue';
 import Message from '../components/Message.vue';
 import Loading from '../components/Loading.vue';
 import Typing from '../components/Typing.vue';
+import IsTyping from '../components/IsTyping.vue';
 
 import api from '../services/api';
 import { delay } from '../helpers';
@@ -46,17 +48,18 @@ export default {
     Message,
     Loading,
     Typing,
+    IsTyping,
   },
 
   data() {
     return {
-      text: '',
       loading: false,
       offset: 0,
-      loggedUser: store.get('loggedUser'),
       messagesEl: null,
       messages: [],
       totalMessages: 0,
+      contactIsTyping: false,
+      loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
     };
   },
@@ -149,6 +152,20 @@ export default {
           };
         });
       }
+    });
+
+    socket.on('contact-is-typing', (contactId) => {
+      if (!this.currentContact) return;
+      if (this.currentContact.id !== contactId) return;
+
+      this.contactIsTyping = true;
+    });
+
+    socket.on('contact-stopped-typing', (contactId) => {
+      if (!this.currentContact) return;
+      if (this.currentContact.id !== contactId) return;
+
+      this.contactIsTyping = false;
     });
   },
 

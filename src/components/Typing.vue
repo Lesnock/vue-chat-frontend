@@ -31,12 +31,35 @@ export default {
   created() {
     // Listeners
     store.listen('currentContact', (contact) => {
+      if (this.text.length > 0) {
+        socket.emit('stopped-typing', {
+          from: this.loggedUser.id,
+          to: this.currentContact.id,
+        });
+      }
+
       this.currentContact = contact;
     });
 
     store.listen('loggedUser', (user) => {
       this.loggedUser = user;
     });
+  },
+
+  watch: {
+    text(text) {
+      if (text.length > 0) {
+        socket.emit('typing', {
+          from: this.loggedUser.id,
+          to: this.currentContact.id,
+        });
+      } else {
+        socket.emit('stopped-typing', {
+          from: this.loggedUser.id,
+          to: this.currentContact.id,
+        });
+      }
+    },
   },
 
   methods: {

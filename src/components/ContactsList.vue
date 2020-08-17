@@ -3,7 +3,7 @@
     <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
 
     <header class="top">
-      <img class="avatar" src="../assets/avatar.jpg" alt="Avatar" />
+      <img class="avatar" :src="require('../assets/' + loggedUser.avatar)" alt="Avatar" />
       <span class="user-name">{{ loggedUser.name }}</span>
       <span class="logout-button" @click="logout">Sair</span>
     </header>
