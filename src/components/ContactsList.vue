@@ -19,7 +19,10 @@
         @click="setCurrentContact(contact)"
       >
         <img :src="require('../assets/' + contact.avatar)" alt="Contact" />
-        <span>{{contact.name}}</span>
+        <div class="name-status">
+          <span>{{contact.name}}</span>
+          <span>{{ onlineUsers.includes(contact.id) ? 'Online' : 'Offline' }}</span>
+        </div>
         <span v-show="notViewed[contact.id]" class="not-viewed-number">{{ notViewed[contact.id] }}</span>
       </li>
     </ul>
@@ -240,6 +243,19 @@ header {
 
 .list li.selected {
   background: var(--messages-bg);
+}
+
+.list li .name-status {
+  display: flex;
+  flex-direction: column;
+}
+
+.list li .name-status :first-child {
+  margin-bottom: 5px;
+}
+
+.list li .name-status :last-child {
+  font-size: 13px;
 }
 
 .list li img {
