@@ -12,6 +12,13 @@ Vue.use(VueToastify, {
 
 Vue.config.productionTip = false;
 
+// Title
+router.afterEach(() => {
+  Vue.nextTick(() => {
+    document.title = '#Chat'
+  })
+})
+
 new Vue({
   router,
   render: h => h(App),

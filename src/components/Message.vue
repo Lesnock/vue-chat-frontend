@@ -53,7 +53,7 @@ export default {
 
 .message {
   position: relative;
-  max-width: 50%;
+  max-width: 80%;
   padding: 20px;
   background: #eee;
   margin: 20px 20px 0px;
@@ -61,7 +61,6 @@ export default {
   font-size: 14px;
   align-self: flex-start;
   box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
-  word-wrap: break-word;
 }
 
 .message.mine {
@@ -72,6 +71,7 @@ export default {
   margin-right: 40px;
   font-size: 14px;
   line-height: 20px;
+  word-wrap: break-word;
 }
 
 .hour {

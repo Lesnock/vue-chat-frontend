@@ -2,15 +2,18 @@
   <div class="contacts-list-container">
     <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
 
-    <header class="top">
+    <!-- <header class="top" v-if="false">
       <img class="avatar" :src="require('../assets/' + loggedUser.avatar)" alt="Avatar" />
       <span class="user-name">{{ loggedUser.name }}</span>
       <span class="logout-button" @click="logout">Sair</span>
-    </header>
+    </header>-->
+    <div class="search">
+      <input type="text" placeholder="Pesquisar contato..." v-model="searchText" />
+    </div>
 
     <ul class="list" v-if="contacts.length > 0">
       <li
-        v-for="contact in contacts"
+        v-for="contact in contactList"
         :key="contact.id"
         :class="[
           currentContact && contact.id === currentContact.id ? 'selected' : '',
@@ -41,11 +44,35 @@ export default {
   data() {
     return {
       contacts: [],
-      loggedUser: store.get('loggedUser'),
-      currentContact: store.get('currentContact'),
+      filteredContacts: [],
       notViewed: {},
       onlineUsers: [],
+      searchText: '',
+      loggedUser: store.get('loggedUser'),
+      currentContact: store.get('currentContact'),
     };
+  },
+
+  computed: {
+    contactList() {
+      if (this.searchText.length > 0) {
+        return this.filteredContacts;
+      }
+
+      return this.contacts;
+    },
+  },
+
+  watch: {
+    searchText(text) {
+      if (text.length > 0) {
+        this.filteredContacts = this.contacts.filter((contact) =>
+          contact.name.includes(text)
+        );
+      } else {
+        this.filteredContacts = [];
+      }
+    },
   },
 
   async created() {
@@ -107,10 +134,6 @@ export default {
 
       this.$forceUpdate();
     });
-  },
-
-  mounted() {
-    //
   },
 
   methods: {
@@ -198,15 +221,22 @@ export default {
   flex-direction: column;
 }
 
-header {
-  height: 100px;
-  background: var(--header-bg);
+.search {
   color: #fff;
   border-bottom: 1px solid #444;
   padding: 15px;
+}
 
-  display: flex;
-  align-items: center;
+.search input {
+  width: 100%;
+  height: 40px;
+  border-radius: 15px;
+  outline: 0;
+  border: 1px solid #444;
+  background: transparent;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #ddd;
 }
 
 .avatar {

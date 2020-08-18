@@ -1,8 +1,9 @@
 <template>
-  <div class="container">
-    <ContactsList />
+  <div class="container" :class="[isMobile ? 'is-mobile' : '']">
+    <ContactsList v-if="shouldShowContacts" />
 
-    <div class="main">
+    <div class="main" v-if="shouldShowMain">
+      <ContactHeader v-if="currentContact !== null" />
       <div class="messages">
         <Loading :isLoading="loading" />
         <span class="load-more" v-if="!hasLoadedAll" @click="getMoreMessages">Carregar mais</span>
@@ -31,6 +32,7 @@ import Message from '../components/Message.vue';
 import Loading from '../components/Loading.vue';
 import Typing from '../components/Typing.vue';
 import IsTyping from '../components/IsTyping.vue';
+import ContactHeader from '../components/ContactHeader.vue';
 
 import api from '../services/api';
 import { delay } from '../helpers';
@@ -49,22 +51,27 @@ export default {
     Loading,
     Typing,
     IsTyping,
+    ContactHeader,
   },
 
   data() {
     return {
       loading: false,
       offset: 0,
-      messagesEl: null,
       messages: [],
       totalMessages: 0,
       contactIsTyping: false,
+      isMobile: store.get('isMobile'),
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
     };
   },
 
   computed: {
+    messagesEl() {
+      return document.getElementsByClassName('messages')[0];
+    },
+
     hasLoadedAll() {
       return this.messages.length === this.totalMessages;
     },
@@ -72,13 +79,29 @@ export default {
     lastMessage() {
       return this.messages[this.messages.length - 1];
     },
+
+    shouldShowMain() {
+      if (!this.isMobile) {
+        return true;
+      }
+
+      return this.currentContact !== null;
+    },
+
+    shouldShowContacts() {
+      if (!this.isMobile) {
+        return true;
+      }
+
+      return this.currentContact === null;
+    },
   },
 
   watch: {
     currentContact: async function (currentContact) {
       this.messages = await this.getMessages(currentContact);
       this.totalMessages = await this.getTotalMessages();
-      this.$nextTick(this.scrollToBottom);
+      this.scrollToBottom();
     },
   },
 
@@ -92,6 +115,10 @@ export default {
     store.listen('currentContact', (contact) => {
       this.currentContact = contact;
       this.offset = 0;
+    });
+
+    store.listen('isMobile', (isMobile) => {
+      this.isMobile = isMobile;
     });
 
     // On receive message
@@ -169,10 +196,10 @@ export default {
     });
   },
 
-  mounted() {
-    // Define elements
-    this.messagesEl = document.getElementsByClassName('messages')[0];
-  },
+  // mounted() {
+  //   // Define elements
+  //   this.messagesEl = document.getElementsByClassName('messages')[0];
+  // },
 
   methods: {
     getMessages: async function (contact) {
@@ -229,9 +256,18 @@ export default {
       this.messages.unshift(...messages);
       this.loading = false;
 
-      this.$nextTick(() => {
-        this.messagesEl.scrollTo(0, topMessage.offsetTop);
-      });
+      // Scroll to bottom only when messages is loaded
+      function scrollToBottom() {
+        if (this.messagesEl) {
+          return this.messagesEl.scrollTo(0, topMessage.offsetTop);
+        }
+
+        this.$nextTick(() => {
+          scrollToBottom();
+        });
+      }
+
+      scrollToBottom();
     },
 
     getTotalMessages: async function () {
@@ -246,7 +282,14 @@ export default {
     },
 
     scrollToBottom() {
-      this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
+      if (this.messagesEl) {
+        return this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
+      }
+
+      // Only scrolls when messages is loaded
+      this.$nextTick(() => {
+        this.scrollToBottom();
+      });
     },
 
     addMessage(message) {
@@ -264,25 +307,25 @@ export default {
 
   max-width: 1600px;
   margin: 0px auto;
-  /* border-right: 1px solid #ddd;
-  border-left: 1px solid #ddd; */
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
 }
 
 .main {
   width: 100%;
   height: 100%;
+  overflow: auto;
   background-color: var(--messages-bg);
 
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .messages {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  margin-top: auto;
+  /* margin-top: auto; */
   padding: 0px 2% 20px;
   background-color: var(--messages-bg);
 }
