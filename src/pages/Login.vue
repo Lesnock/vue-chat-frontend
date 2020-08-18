@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <h1>#Chat</h1>
+    <h1 class="title">#Chat</h1>
     <form action="/" @submit="onSubmit">
       <div class="error" v-show="error">{{ error }}</div>
       <input type="text" name="username" v-model="username" placeholder="Usuário" />
@@ -65,16 +65,17 @@ export default {
 .login-container {
   height: 100%;
   width: 100%;
-  background: linear-gradient(
-    45deg,
-    rgba(219, 255, 80, 1) 0%,
-    rgba(44, 236, 173, 1) 100%
-  );
+
+  background: var(--contact-bg);
 
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.title {
+  color: #fff;
 }
 
 form {

@@ -261,6 +261,12 @@ export default {
 .container {
   display: flex;
   height: 100vh;
+
+  max-width: 1600px;
+  margin: 0px auto;
+  /* border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd; */
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
 }
 
 .main {

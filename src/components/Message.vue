@@ -6,8 +6,8 @@
       <div class="caret" :class="[isMine ? 'right' : 'left']"></div>
       <div class="text">{{ text }}</div>
       <div class="hour">{{ hour }}</div>
-      <div class="checks" :class="[isViewed ? 'viewed' : '']" v-if="isMine" >
-        <Check class="check-icon"/>
+      <div class="checks" :class="[isViewed ? 'viewed' : '']" v-if="isMine">
+        <Check class="check-icon" />
         <Check class="check-icon" v-if="isReceived" />
       </div>
     </div>
@@ -16,7 +16,7 @@
 
 <script>
 import { format } from 'date-fns';
-import Check from './Icons/Check'
+import Check from './Icons/Check';
 
 export default {
   name: 'Message',
@@ -60,7 +60,8 @@ export default {
   border-radius: 10px;
   font-size: 14px;
   align-self: flex-start;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, .3);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+  word-wrap: break-word;
 }
 
 .message.mine {

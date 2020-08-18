@@ -215,6 +215,7 @@ header {
   border-radius: 50%;
   background: #fff;
   margin-right: 10px;
+  object-fit: cover;
 }
 
 .user-name {

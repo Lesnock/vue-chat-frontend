@@ -6,7 +6,7 @@ import Chat from './pages/Chat.vue'
 
 const routes = [
   { path: '/', component: Login },
-  { path: '/chat', component: Chat },
+  { path: '/chat/', component: Chat },
 ]
 
 const router = new VueRouter({
