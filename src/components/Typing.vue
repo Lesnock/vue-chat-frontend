@@ -105,7 +105,7 @@ export default {
 
 <style scoped>
 .typing {
-  height: 10%;
+  min-height: 10%;
   padding: 0px 20px;
   position: relative;
   background: #eee;

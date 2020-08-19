@@ -4,6 +4,13 @@
   </div>
 </template>
 
+<script>
+// Hack for make real height 100% on mobiles
+// Creates our own 'vh' and set to document properties
+const vh = window.innerHeight / 100;
+document.documentElement.style.setProperty('--vh', vh + 'px');
+</script>
+
 <style>
 /* Variables */
 :root {

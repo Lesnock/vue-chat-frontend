@@ -281,7 +281,7 @@ export default {
 <style scoped>
 .container {
   display: flex;
-  height: 100vh;
+  height: 100%;
 
   max-width: 1600px;
   margin: 0px auto;
@@ -290,7 +290,8 @@ export default {
 
 .main {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: auto;
   background-color: var(--messages-bg);
 
