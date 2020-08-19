@@ -2,14 +2,20 @@
   <div class="contacts-list-container">
     <audio id="notification-sound" :src="require('../assets/sounds/notification.mp3')"></audio>
 
-    <!-- <header class="top" v-if="false">
-      <img class="avatar" :src="require('../assets/' + loggedUser.avatar)" alt="Avatar" />
-      <span class="user-name">{{ loggedUser.name }}</span>
-      <span class="logout-button" @click="logout">Sair</span>
-    </header>-->
-    <div class="search">
-      <input type="text" placeholder="Pesquisar contato..." v-model="searchText" />
-    </div>
+    <header>
+      <div class="logged-user">
+        <img
+          class="logged-user-avatar"
+          :src="require('../assets/' + loggedUser.avatar)"
+          alt="Avatar"
+        />
+        <span class="user-name">{{ loggedUser.name }}</span>
+        <span class="logout-button" @click="logout">Sair</span>
+      </div>
+      <div class="search">
+        <input type="text" placeholder="Pesquisar contato..." v-model="searchText" />
+      </div>
+    </header>
 
     <ul class="list" v-if="contacts.length > 0">
       <li
@@ -46,8 +52,9 @@ export default {
       contacts: [],
       filteredContacts: [],
       notViewed: {},
-      onlineUsers: [],
       searchText: '',
+      test: '123',
+      onlineUsers: store.get('onlineUsers'),
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
     };
@@ -73,28 +80,47 @@ export default {
         this.filteredContacts = [];
       }
     },
+
+    currentContact(contact) {
+      store.update('currentContact', contact);
+
+      if (contact === null) return;
+
+      if (this.notViewed[contact.id]) {
+        this.notViewed[contact.id] = 0;
+        this.markContactMessagesAsViewed(contact.id);
+        socket.emit('user-viewed-messages', contact.id);
+      }
+    },
+
+    onlineUsers(users) {
+      store.update('onlineUsers', users);
+    },
   },
 
   async created() {
     const contacts = await api.get('/users');
     this.contacts = contacts.data;
 
-    this.contacts = this.contacts.filter((contact) => {
-      return contact.id !== this.loggedUser.id;
-    });
+    this.contacts = this.contacts.filter(
+      (contact) => contact.id !== this.loggedUser.id
+    );
 
     this.notViewed = await this.getMessagesNotViewedCount();
 
     // Create listener
-    store.listen(
-      'currentContact',
-      (contact) => (this.currentContact = contact)
-    );
+    store.listen('currentContact', (contact) => {
+      this.currentContact = contact;
+    });
+
+    store.listen('onlineUsers', (users) => {
+      this.onlineUsers = users;
+    });
 
     socket.emit('get-online-users');
-    socket.on('online-users', (onlineUsers) => {
-      for (const socketId in onlineUsers) {
-        this.onlineUsers.push(onlineUsers[socketId]);
+    socket.on('online-users', (connections) => {
+      for (const socketId in connections) {
+        this.onlineUsers.push(connections[socketId]);
       }
     });
 
@@ -138,13 +164,7 @@ export default {
 
   methods: {
     setCurrentContact(contact) {
-      store.update('currentContact', contact);
-
-      if (this.notViewed[contact.id]) {
-        this.notViewed[contact.id] = 0;
-        this.markContactMessagesAsViewed(contact.id);
-        socket.emit('user-viewed-messages', contact.id);
-      }
+      this.currentContact = contact;
     },
 
     playNotificationSound() {
@@ -215,19 +235,44 @@ export default {
   height: 100%;
   min-width: 300px;
   background-color: var(--header-bg);
+  border-right: 1px solid #444;
   flex-grow: 1;
 
   display: flex;
   flex-direction: column;
 }
 
-.search {
-  color: #fff;
-  border-bottom: 1px solid #444;
-  padding: 15px;
+header {
+  display: flex;
+  flex-direction: column;
 }
 
-.search input {
+header .logged-user {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  color: #fff;
+  border-bottom: 1px solid #444;
+}
+
+header .logged-user .logout-button {
+  margin-left: auto;
+  cursor: pointer;
+  background: var(--messages-bg);
+  border-radius: 50%;
+  padding: 10px 5px;
+}
+
+header .search {
+  color: #fff;
+  border-bottom: 1px solid #444;
+  height: 70px;
+  display: flex;
+  padding: 0px 15px;
+  align-items: center;
+}
+
+header .search input {
   width: 100%;
   height: 40px;
   border-radius: 15px;
@@ -239,22 +284,16 @@ export default {
   color: #ddd;
 }
 
-.avatar {
-  height: 60px;
-  width: 60px;
+.logged-user-avatar {
+  height: 50px;
+  width: 50px;
   border-radius: 50%;
-  background: #fff;
   margin-right: 10px;
   object-fit: cover;
 }
 
 .user-name {
   font-size: 18px;
-}
-
-.logout-button {
-  margin-left: auto;
-  cursor: pointer;
 }
 
 .list {

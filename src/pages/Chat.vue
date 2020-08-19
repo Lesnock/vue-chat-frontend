@@ -1,9 +1,10 @@
 <template>
   <div class="container" :class="[isMobile ? 'is-mobile' : '']">
-    <ContactsList v-if="shouldShowContacts" />
+    <ContactsList v-show="shouldShowContacts" />
 
-    <div class="main" v-if="shouldShowMain">
+    <div class="main" v-show="shouldShowMain">
       <ContactHeader v-if="currentContact !== null" />
+
       <div class="messages">
         <Loading :isLoading="loading" />
         <span class="load-more" v-if="!hasLoadedAll" @click="getMoreMessages">Carregar mais</span>
@@ -18,7 +19,6 @@
           :isReceived="Boolean(message.received)"
           :isViewed="Boolean(message.viewed)"
         />
-        <IsTyping v-if="contactIsTyping" :name="currentContact.name" />
       </div>
       <Typing :addMessage="addMessage" :scrollToBottom="scrollToBottom" />
     </div>
@@ -31,7 +31,6 @@ import ContactsList from '../components/ContactsList.vue';
 import Message from '../components/Message.vue';
 import Loading from '../components/Loading.vue';
 import Typing from '../components/Typing.vue';
-import IsTyping from '../components/IsTyping.vue';
 import ContactHeader from '../components/ContactHeader.vue';
 
 import api from '../services/api';
@@ -50,7 +49,6 @@ export default {
     Message,
     Loading,
     Typing,
-    IsTyping,
     ContactHeader,
   },
 
@@ -60,7 +58,6 @@ export default {
       offset: 0,
       messages: [],
       totalMessages: 0,
-      contactIsTyping: false,
       isMobile: store.get('isMobile'),
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
@@ -99,6 +96,8 @@ export default {
 
   watch: {
     currentContact: async function (currentContact) {
+      if (currentContact === null) return;
+
       this.messages = await this.getMessages(currentContact);
       this.totalMessages = await this.getTotalMessages();
       this.scrollToBottom();
@@ -143,9 +142,7 @@ export default {
 
         socket.emit('user-viewed-messages', this.currentContact.id);
 
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        this.scrollToBottom();
       }
     });
 
@@ -180,26 +177,7 @@ export default {
         });
       }
     });
-
-    socket.on('contact-is-typing', (contactId) => {
-      if (!this.currentContact) return;
-      if (this.currentContact.id !== contactId) return;
-
-      this.contactIsTyping = true;
-    });
-
-    socket.on('contact-stopped-typing', (contactId) => {
-      if (!this.currentContact) return;
-      if (this.currentContact.id !== contactId) return;
-
-      this.contactIsTyping = false;
-    });
   },
-
-  // mounted() {
-  //   // Define elements
-  //   this.messagesEl = document.getElementsByClassName('messages')[0];
-  // },
 
   methods: {
     getMessages: async function (contact) {
@@ -257,7 +235,7 @@ export default {
       this.loading = false;
 
       // Scroll to bottom only when messages is loaded
-      function scrollToBottom() {
+      const scrollToBottom = () => {
         if (this.messagesEl) {
           return this.messagesEl.scrollTo(0, topMessage.offsetTop);
         }
@@ -265,7 +243,7 @@ export default {
         this.$nextTick(() => {
           scrollToBottom();
         });
-      }
+      };
 
       scrollToBottom();
     },
@@ -282,7 +260,7 @@ export default {
     },
 
     scrollToBottom() {
-      if (this.messagesEl) {
+      if (this.messagesEl && this.messages.length > 0) {
         return this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
       }
 
@@ -325,8 +303,8 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  /* margin-top: auto; */
-  padding: 0px 2% 20px;
+  flex-grow: 1;
+  padding: 70px 2% 20px;
   background-color: var(--messages-bg);
 }
 

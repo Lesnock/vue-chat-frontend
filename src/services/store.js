@@ -10,12 +10,16 @@ const store = new Store({
 
 !store.has('currentContact') && store.add('currentContact', null);
 
+// Reset Online Users
+store.has('onlineUsers') && store.delete('onlineUsers')
+store.add('onlineUsers', [])
+
 !store.has('isMobile') && store.add('isMobile', window.innerWidth <= 900)
 
 const mobileMaxWidth = 800
 
 // Reset isMobile value
-store.delete('isMobile')
+store.has('isMobile') && store.delete('isMobile')
 store.add('isMobile', window.innerWidth <= mobileMaxWidth)
 
 window.onresize = () => {
