@@ -7,7 +7,11 @@
 
       <div class="messages">
         <Loading :isLoading="loading" />
-        <span class="load-more" v-if="!hasLoadedAll" @click="getMoreMessages">Carregar mais</span>
+        <span
+          class="load-more"
+          v-if="!hasLoadedAll && !loading"
+          @click="getMoreMessages"
+        >Carregar mais...</span>
         <Message
           v-for="message of messages"
           :key="`${message.uuid}`"
@@ -237,7 +241,7 @@ export default {
       // Scroll to bottom only when messages is loaded
       const scrollToBottom = () => {
         if (this.messagesEl) {
-          return this.messagesEl.scrollTo(0, topMessage.offsetTop);
+          return this.messagesEl.scrollTo(0, topMessage.offsetTop - 70);
         }
 
         this.$nextTick(() => {
@@ -305,7 +309,7 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding: 70px 2% 20px;
+  padding: 20px 2% 20px;
   background-color: var(--messages-bg);
 }
 

@@ -233,10 +233,12 @@ export default {
 .contacts-list-container {
   width: 30vw;
   height: 100%;
+  height: calc(var(--vh, 1vh) * 100);
   min-width: 300px;
   background-color: var(--header-bg);
   border-right: 1px solid #444;
   flex-grow: 1;
+  overflow-y: scroll;
 
   display: flex;
   flex-direction: column;
