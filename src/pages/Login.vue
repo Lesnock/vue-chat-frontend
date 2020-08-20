@@ -31,7 +31,7 @@ export default {
   },
 
   beforeCreate: async function () {
-    publicPage();
+    await publicPage();
   },
 
   methods: {

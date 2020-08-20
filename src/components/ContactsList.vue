@@ -76,6 +76,16 @@ export default {
 
       return this.contacts;
     },
+
+    totalNotViewed() {
+      const totalNotViewed = Object.values(this.notViewed).reduce(
+        (accumulator, currentValue) => {
+          return (accumulator += currentValue);
+        }
+      );
+
+      return totalNotViewed;
+    },
   },
 
   watch: {
@@ -172,6 +182,12 @@ export default {
 
       this.$forceUpdate();
     });
+  },
+
+  updated() {
+    if (Object.keys(this.notViewed).length > 0) {
+      document.title = `(${this.totalNotViewed}) #Chat`;
+    }
   },
 
   methods: {
