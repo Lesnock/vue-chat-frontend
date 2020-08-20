@@ -17,6 +17,8 @@
       </div>
     </header>
 
+    <Loading :isLoading="isLoading === true" />
+
     <ul class="list" v-if="contacts.length > 0">
       <li
         v-for="contact in contactList"
@@ -42,18 +44,24 @@
 import api from '../services/api';
 import store from '../services/store';
 import { getSocket } from '../services/socket';
+import Loading from './Loading.vue';
 
 const socket = getSocket();
 
 export default {
   name: 'ContactsList',
+
+  components: {
+    Loading,
+  },
+
   data() {
     return {
       contacts: [],
       filteredContacts: [],
       notViewed: {},
       searchText: '',
-      test: '123',
+      isLoading: true,
       onlineUsers: store.get('onlineUsers'),
       loggedUser: store.get('loggedUser'),
       currentContact: store.get('currentContact'),
@@ -99,14 +107,18 @@ export default {
   },
 
   async created() {
+    this.isLoading = true;
+
     const contacts = await api.get('/users');
     this.contacts = contacts.data;
 
-    this.contacts = this.contacts.filter(
-      (contact) => contact.id !== this.loggedUser.id
-    );
+    this.contacts = this.contacts.filter((contact) => {
+      return contact.id !== this.loggedUser.id;
+    });
 
     this.notViewed = await this.getMessagesNotViewedCount();
+
+    this.isLoading = false;
 
     // Create listener
     store.listen('currentContact', (contact) => {
@@ -238,7 +250,6 @@ export default {
   background-color: var(--header-bg);
   border-right: 1px solid #444;
   flex-grow: 1;
-  overflow-y: scroll;
 
   display: flex;
   flex-direction: column;
@@ -298,8 +309,13 @@ header .search input {
   font-size: 18px;
 }
 
+.loading-container {
+  margin-top: 20px;
+}
+
 .list {
   width: 100%;
+  overflow-y: scroll;
 }
 
 .list li {

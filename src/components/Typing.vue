@@ -1,6 +1,6 @@
 <template>
   <div class="typing" v-if="currentContact">
-    <input v-model="text" @keydown.enter="sendMessage" />
+    <input id="typer" v-model="text" @keydown.enter="sendMessage" />
 
     <img class="send-icon" src="../assets/icons/send-icon.svg" alt="Send" @click="sendMessage" />
   </div>
@@ -63,10 +63,10 @@ export default {
   },
 
   methods: {
-    sendMessage: async function (event) {
-      if (event.shiftKey) {
-        return;
-      }
+    sendMessage: async function () {
+      // if (event.shiftKey) {
+      //   return;
+      // }
 
       if (!this.text.length || !this.currentContact) {
         return;
@@ -90,14 +90,21 @@ export default {
       message.isMine = true;
 
       this.addMessage(message);
-
-      this.$nextTick(this.scrollToBottom);
-
       this.clearInput();
+
+      this.$nextTick(() => {
+        this.scrollToBottom();
+        this.focusOnInput();
+      });
     },
 
     clearInput() {
       this.text = '';
+    },
+
+    focusOnInput() {
+      const typer = document.getElementById('typer');
+      typer.focus();
     },
   },
 };

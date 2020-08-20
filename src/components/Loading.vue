@@ -36,6 +36,7 @@ export default {
 .loading-icon {
   height: 50px;
   margin-bottom: 10px;
+  fill: #ddd;
   animation: routing 2s linear infinite;
 }
 </style>

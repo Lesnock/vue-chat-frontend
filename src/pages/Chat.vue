@@ -74,7 +74,7 @@ export default {
     },
 
     hasLoadedAll() {
-      return this.messages.length === this.totalMessages;
+      return this.messages.length >= this.totalMessages;
     },
 
     lastMessage() {
@@ -264,13 +264,9 @@ export default {
     },
 
     scrollToBottom() {
-      if (this.messagesEl && this.messages.length > 0) {
-        return this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
-      }
-
       // Only scrolls when messages is loaded
       this.$nextTick(() => {
-        this.scrollToBottom();
+        this.messagesEl.scrollTo(0, this.messagesEl.scrollHeight);
       });
     },
 

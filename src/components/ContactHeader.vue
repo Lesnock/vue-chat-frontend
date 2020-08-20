@@ -53,6 +53,7 @@ export default {
   created() {
     store.listen('currentContact', (contact) => {
       this.currentContact = contact;
+      this.contactIsTyping = false;
     });
 
     store.listen('onlineUsers', (users) => {
